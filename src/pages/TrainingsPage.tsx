@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getTrainings } from "../services/api";
+import { format } from "date-fns";
 
 type Training = {
   activity: string;
@@ -44,12 +45,10 @@ export default function TrainingsPage() {
 
   return (
     <div>
-      <h2>Trainings</h2>
       {trainings.map((training, index) => (
         <div key={index}>
           {training.activity} | {training.duration} min |{" "}
-          {new Date(training.date).toLocaleString("fi-FI")} |{" "}
-          {training.customer?.firstname} {training.customer?.lastname}
+          {format(new Date(training.date), "dd.MM.yyyy HH:mm")}
         </div>
       ))}
     </div>
