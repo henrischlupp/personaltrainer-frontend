@@ -1,113 +1,49 @@
 import { useEffect, useState } from "react";
+import Box from "@mui/material/Box";
+import PageHeader from "../components/PageHeader";
+import CustomerList from "../components/CustomerList";
 import { getCustomers } from "../services/api";
-
-type Customer = {
-  firstname: string;
-  lastname: string;
-  email: string;
-  phone: string;
-};
-
-type CustomersResponse = {
-  _embedded?: {
-    customers?: Customer[];
-  };
-};
+import type { Customer, CustomersResponse } from "../types/customer";
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [search, setSearch] = useState("");
-  const [sortField, setSortField] = useState("firstname");
-  const [sortOrder, setSortOrder] = useState("asc");
+
+  const getCustomersData = () => {
+    getCustomers()
+      .then((data: CustomersResponse) => {
+        setCustomers(data._embedded?.customers || []);
+      })
+      .catch((err) => console.error(err));
+  };
 
   useEffect(() => {
-    async function fetchCustomers() {
-      try {
-        const data: CustomersResponse = await getCustomers();
-        setCustomers(data._embedded?.customers || []);
-      } catch (error) {
-        console.error("Error trying to fetching customers:", error);
-      }
-    }
-
-    fetchCustomers();
+    getCustomersData();
   }, []);
 
-  function handleSort(field: string) {
-    if (sortField === field) {
-      if (sortOrder === "asc") {
-        setSortOrder("desc");
-      } else {
-        setSortOrder("asc");
-      }
-    } else {
-      setSortField(field);
-      setSortOrder("asc");
-    }
-  }
+  const filteredCustomers = customers.filter((customer) => {
+    const searchLower = search.toLowerCase();
 
-  const filteredCustomers = customers.filter(
-    (customer) =>
-      customer.firstname.toLowerCase().includes(search.toLowerCase()) ||
-      customer.lastname.toLowerCase().includes(search.toLowerCase()) ||
-      customer.email.toLowerCase().includes(search.toLowerCase()) ||
-      customer.phone.toLowerCase().includes(search.toLowerCase()),
-  );
-
-  const sortedCustomers = [...filteredCustomers].sort((a, b) => {
-    const aValue = a[sortField as keyof Customer].toLowerCase();
-    const bValue = b[sortField as keyof Customer].toLowerCase();
-
-    if (aValue < bValue) {
-      if (sortOrder === "asc") {
-        return -1;
-      } else {
-        return 1;
-      }
-    }
-
-    if (aValue > bValue) {
-      if (sortOrder === "asc") {
-        return 1;
-      } else {
-        return -1;
-      }
-    }
-
-    return 0;
+    return (
+      customer.firstname.toLowerCase().includes(searchLower) ||
+      customer.lastname.toLowerCase().includes(searchLower) ||
+      customer.email.toLowerCase().includes(searchLower) ||
+      customer.phone.toLowerCase().includes(searchLower) ||
+      (customer.streetaddress || "").toLowerCase().includes(searchLower) ||
+      (customer.postcode || "").toLowerCase().includes(searchLower) ||
+      (customer.city || "").toLowerCase().includes(searchLower)
+    );
   });
 
   return (
-    <div>
-      <h2>Customers</h2>
-
-      <input
-        type="text"
-        placeholder="Search customers"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
+    <Box sx={{ width: "100%", px: 2, py: 2 }}>
+      <PageHeader
+        title="Customers"
+        search={search}
+        onSearchChange={setSearch}
       />
 
-      <table>
-        <thead>
-          <tr>
-            <th onClick={() => handleSort("firstname")}>First name</th>
-            <th onClick={() => handleSort("lastname")}>Last name</th>
-            <th onClick={() => handleSort("email")}>Email</th>
-            <th onClick={() => handleSort("phone")}>Phone</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortedCustomers.map((customer, index) => (
-            <tr key={index}>
-              <td>{customer.firstname}</td>
-              <td>{customer.lastname}</td>
-              <td>{customer.email}</td>
-              <td>{customer.phone}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+      <CustomerList customers={filteredCustomers} />
+    </Box>
   );
 }

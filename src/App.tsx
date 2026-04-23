@@ -1,8 +1,7 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Navigation from "./components/Navigation";
 import CustomersPage from "./pages/CustomersPage";
 import TrainingsPage from "./pages/TrainingsPage";
-import "./App.css";
 
 function App() {
   return (
