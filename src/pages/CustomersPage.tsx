@@ -2,8 +2,18 @@ import { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import PageHeader from "../components/PageHeader";
 import CustomerList from "../components/CustomerList";
-import { getCustomers } from "../services/api";
-import type { Customer, CustomersResponse } from "../types/customer";
+import AddCustomer from "../components/AddCustomer";
+import {
+  getCustomers,
+  addCustomer,
+  updateCustomer,
+  deleteCustomer,
+} from "../services/api";
+import type {
+  Customer,
+  CustomersResponse,
+  CustomerInput,
+} from "../types/customer";
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -20,6 +30,26 @@ export default function CustomersPage() {
   useEffect(() => {
     getCustomersData();
   }, []);
+
+  const saveCustomer = (customer: CustomerInput) => {
+    addCustomer(customer)
+      .then(() => getCustomersData())
+      .catch((err) => console.error(err));
+  };
+
+  const editCustomer = (url: string, customer: CustomerInput) => {
+    updateCustomer(url, customer)
+      .then(() => getCustomersData())
+      .catch((err) => console.error(err));
+  };
+
+  const removeCustomer = (url: string) => {
+    if (window.confirm("Are you sure you want to delete this customer?")) {
+      deleteCustomer(url)
+        .then(() => getCustomersData())
+        .catch((err) => console.error(err));
+    }
+  };
 
   const filteredCustomers = customers.filter((customer) => {
     const searchLower = search.toLowerCase();
@@ -43,7 +73,15 @@ export default function CustomersPage() {
         onSearchChange={setSearch}
       />
 
-      <CustomerList customers={filteredCustomers} />
+      <Box sx={{ mb: 2 }}>
+        <AddCustomer saveCustomer={saveCustomer} />
+      </Box>
+
+      <CustomerList
+        customers={filteredCustomers}
+        deleteCustomer={removeCustomer}
+        updateCustomer={editCustomer}
+      />
     </Box>
   );
 }

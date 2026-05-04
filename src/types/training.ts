@@ -30,3 +30,10 @@ export type TrainingRow = {
   duration: number;
   customer: string;
 };
+
+export type TrainingInput = {
+  date: string;
+  duration: number;
+  activity: string;
+  customer: string;
+};

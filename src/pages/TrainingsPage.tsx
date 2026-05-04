@@ -3,17 +3,34 @@ import Box from "@mui/material/Box";
 import { format } from "date-fns";
 import PageHeader from "../components/PageHeader";
 import TrainingList from "../components/TrainingList";
-import { getTrainings } from "../services/api";
+import AddTraining from "../components/AddTraining";
+import {
+  getTrainings,
+  getCustomers,
+  addTraining,
+  deleteTraining,
+} from "../services/api";
+import type { Customer, CustomersResponse } from "../types/customer";
 import type {
   TrainingFromApi,
   TrainingsResponse,
   CustomerResponse,
   TrainingRow,
+  TrainingInput,
 } from "../types/training";
 
 export default function TrainingsPage() {
   const [trainings, setTrainings] = useState<TrainingRow[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [search, setSearch] = useState("");
+
+  const getCustomersData = () => {
+    getCustomers()
+      .then((data: CustomersResponse) => {
+        setCustomers(data._embedded?.customers || []);
+      })
+      .catch((err) => console.error(err));
+  };
 
   const getTrainingsData = () => {
     getTrainings()
@@ -48,8 +65,23 @@ export default function TrainingsPage() {
   };
 
   useEffect(() => {
+    getCustomersData();
     getTrainingsData();
   }, []);
+
+  const saveTraining = (training: TrainingInput) => {
+    addTraining(training)
+      .then(() => getTrainingsData())
+      .catch((err) => console.error(err));
+  };
+
+  const removeTraining = (url: string) => {
+    if (window.confirm("Are you sure you want to delete this training?")) {
+      deleteTraining(url)
+        .then(() => getTrainingsData())
+        .catch((err) => console.error(err));
+    }
+  };
 
   const filteredTrainings = trainings.filter((training) => {
     const searchLower = search.toLowerCase();
@@ -70,7 +102,14 @@ export default function TrainingsPage() {
         onSearchChange={setSearch}
       />
 
-      <TrainingList trainings={filteredTrainings} />
+      <Box sx={{ mb: 2 }}>
+        <AddTraining customers={customers} saveTraining={saveTraining} />
+      </Box>
+
+      <TrainingList
+        trainings={filteredTrainings}
+        deleteTraining={removeTraining}
+      />
     </Box>
   );
 }
