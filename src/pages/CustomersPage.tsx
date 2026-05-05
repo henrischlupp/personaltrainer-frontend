@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import PageHeader from "../components/PageHeader";
 import CustomerList from "../components/CustomerList";
 import AddCustomer from "../components/AddCustomer";
+
 import {
   getCustomers,
   addCustomer,
@@ -50,6 +52,47 @@ export default function CustomersPage() {
         .catch((err) => console.error(err));
     }
   };
+  const exportCustomers = () => {
+    const csvRows = [
+      [
+        "Firstname",
+        "Lastname",
+        "Email",
+        "Phone",
+        "Streetaddress",
+        "Postcode",
+        "City",
+      ],
+      ...customers.map((customer) => [
+        customer.firstname,
+        customer.lastname,
+        customer.email,
+        customer.phone,
+        customer.streetaddress || "",
+        customer.postcode || "",
+        customer.city || "",
+      ]),
+    ];
+
+    const csvContent = csvRows
+      .map((row) =>
+        row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","),
+      )
+      .join("\n");
+
+    const blob = new Blob([csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.setAttribute("download", "customers.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const filteredCustomers = customers.filter((customer) => {
     const searchLower = search.toLowerCase();
@@ -73,8 +116,12 @@ export default function CustomersPage() {
         onSearchChange={setSearch}
       />
 
-      <Box sx={{ mb: 2 }}>
+      <Box sx={{ mb: 2, display: "flex", gap: 2 }}>
         <AddCustomer saveCustomer={saveCustomer} />
+
+        <Button variant="outlined" onClick={exportCustomers}>
+          Export CSV
+        </Button>
       </Box>
 
       <CustomerList
