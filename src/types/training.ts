@@ -37,3 +37,7 @@ export type TrainingInput = {
   activity: string;
   customer: string;
 };
+export type TrainingStatistic = {
+  activity: string;
+  minutes: number;
+};
