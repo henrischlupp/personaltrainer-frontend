@@ -20,6 +20,9 @@ export default function Navigation() {
           <Button color="inherit" component={RouterLink} to="/trainings">
             Trainings
           </Button>
+          <Button color="inherit" component={RouterLink} to="/calendar">
+            Calendar
+          </Button>
         </Box>
       </Toolbar>
     </AppBar>
